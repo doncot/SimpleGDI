@@ -204,6 +204,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         break;
 
     case WM_DESTROY:
+        /* メモリデバイスコンテキスト削除 */
+        DeleteDC(g_hMemoryDC);
+        /* DDB削除 */
+        DeleteObject(g_hMemoryBitmap);
+
         PostQuitMessage(0);
         break;
     default:
