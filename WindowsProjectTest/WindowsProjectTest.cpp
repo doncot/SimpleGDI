@@ -197,12 +197,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
             {
                 BitBlt(hdc, 0, 0, width, height, g_hMemoryDC, 0, 0, SRCCOPY);
-
-
-                auto hBuffer = CreateCompatibleDC(hdc);
-                SelectObject(hBuffer, hBitmap);
-                BitBlt(hdc, 100, 100, 64, 64, hBuffer, 0, 0, SRCCOPY);
-                DeleteDC(hBuffer);
             }
             EndPaint(hWnd, &ps);
         }
@@ -225,7 +219,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             TextOut(g_hMemoryDC, 0, 0, szText, lstrlen(szText));
             Rectangle(g_hMemoryDC, 50 + d, 10 + d, 200 + d, 100 + d);
             Rectangle(g_hMemoryDC, 250, 50 + d, 400, 150 + d);
-            //RECT refreshRect = { 50 + d, 50 + d, 200 + d, 150 + d };
+            
+            auto hBuffer = CreateCompatibleDC(g_hMemoryDC);
+            SelectObject(hBuffer, hBitmap);
+            BitBlt(g_hMemoryDC, 100, 100, 64, 64, hBuffer, 0, 0, SRCCOPY);
+            DeleteDC(hBuffer);
+
             InvalidateRect(hWnd, nullptr, FALSE);
         }
         break;
