@@ -16,6 +16,13 @@ WCHAR szWindowClass[MAX_LOADSTRING];            // メイン ウィンドウ ク
 HBITMAP g_hMemoryBitmap;
 HDC g_hMemoryDC;
 
+enum class InputState
+{
+    Neutral,
+    Left,
+    Right,
+};
+
 // このコード モジュールに含まれる関数の宣言を転送します:
 ATOM                MyRegisterClass(HINSTANCE hInstance);
 BOOL                InitInstance(HINSTANCE, int);
@@ -126,11 +133,15 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 //
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-    static int d = 1;
+ 
     RECT clientRect;
     GetClientRect(hWnd, &clientRect);
     int width = clientRect.right - clientRect.left;
     int height = clientRect.bottom - clientRect.top;
+
+    static int d = 1;
+    static InputState state = InputState::Neutral;
+    static HBITMAP hBitmap;
 
     switch (message)
     {
@@ -157,6 +168,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             //}
 
             SetTimer(hWnd, 1, 16, NULL);
+
+            // ロード
+            hBitmap = (HBITMAP)LoadImage(NULL, _T("1.bmp"), IMAGE_BITMAP, 0, 0, LR_LOADFROMFILE);
         }
         break;
 
@@ -183,23 +197,64 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             HDC hdc = BeginPaint(hWnd, &ps);
             {
                 BitBlt(hdc, 0, 0, width, height, g_hMemoryDC, 0, 0, SRCCOPY);
+
+
+                auto hBuffer = CreateCompatibleDC(hdc);
+                SelectObject(hBuffer, hBitmap);
+                BitBlt(hdc, 100, 100, 64, 64, hBuffer, 0, 0, SRCCOPY);
+                DeleteDC(hBuffer);
             }
             EndPaint(hWnd, &ps);
         }
         break;
     case WM_TIMER:
         {
+            // Update
+
+            //d++;
+            if (state == InputState::Left)
+                d -= 5;
+            else if (state == InputState::Right)
+                d += 5;
+
             // 背景クリア
             auto hBackgroundBrush = static_cast<HBRUSH>(GetStockObject(DC_BRUSH));
             FillRect(g_hMemoryDC, &clientRect, hBackgroundBrush);
 
-            d++;
             TCHAR szText[] = _T("test!!");
             TextOut(g_hMemoryDC, 0, 0, szText, lstrlen(szText));
             Rectangle(g_hMemoryDC, 50 + d, 10 + d, 200 + d, 100 + d);
             Rectangle(g_hMemoryDC, 250, 50 + d, 400, 150 + d);
-            RECT refreshRect = { 50 + d, 50 + d, 200 + d, 150 + d };
+            //RECT refreshRect = { 50 + d, 50 + d, 200 + d, 150 + d };
             InvalidateRect(hWnd, nullptr, FALSE);
+        }
+        break;
+
+    case WM_KEYDOWN:
+        {
+            switch (wParam)
+            {
+            case VK_LEFT:
+                state = InputState::Left;
+                break;
+            case VK_RIGHT:
+                state = InputState::Right;
+                break;
+            default:
+                break;
+            }
+        }
+        break;
+
+    case WM_KEYUP:
+        switch (wParam)
+        {
+        case VK_LEFT:
+        case VK_RIGHT:
+            state = InputState::Neutral;
+            break;
+        default:
+            break;
         }
         break;
 
