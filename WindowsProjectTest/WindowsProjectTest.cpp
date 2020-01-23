@@ -21,6 +21,8 @@ enum class InputState
     Neutral,
     Left,
     Right,
+    Up,
+    Down,
 };
 
 // このコード モジュールに含まれる関数の宣言を転送します:
@@ -139,7 +141,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     int width = clientRect.right - clientRect.left;
     int height = clientRect.bottom - clientRect.top;
 
-    static int d = 1;
+    static int dx = 1;
+    static int dy = 1;
     static InputState state = InputState::Neutral;
     static HBITMAP hBitmap;
 
@@ -207,9 +210,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             //d++;
             if (state == InputState::Left)
-                d -= 5;
+                dx -= 5;
             else if (state == InputState::Right)
-                d += 5;
+                dx += 5;
+
+            if (state == InputState::Up)
+                dy -= 5;
+            else if (state == InputState::Down)
+                dy += 5;
 
             // 背景クリア
             auto hBackgroundBrush = static_cast<HBRUSH>(GetStockObject(DC_BRUSH));
@@ -217,12 +225,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             TCHAR szText[] = _T("test!!");
             TextOut(g_hMemoryDC, 0, 0, szText, lstrlen(szText));
-            Rectangle(g_hMemoryDC, 50 + d, 10 + d, 200 + d, 100 + d);
-            Rectangle(g_hMemoryDC, 250, 50 + d, 400, 150 + d);
+            Rectangle(g_hMemoryDC, 50, 10, 200, 100);
+            Rectangle(g_hMemoryDC, 250, 50, 400, 150);
             
             auto hBuffer = CreateCompatibleDC(g_hMemoryDC);
             SelectObject(hBuffer, hBitmap);
-            BitBlt(g_hMemoryDC, 100, 100, 64, 64, hBuffer, 0, 0, SRCCOPY);
+            BitBlt(g_hMemoryDC, 100 + dx, 100 + dy, 64, 64, hBuffer, 0, 0, SRCCOPY);
             DeleteDC(hBuffer);
 
             InvalidateRect(hWnd, nullptr, FALSE);
@@ -239,6 +247,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             case VK_RIGHT:
                 state = InputState::Right;
                 break;
+            case VK_UP:
+                state = InputState::Up;
+                break;
+            case VK_DOWN:
+                state = InputState::Down;
+                break;
             default:
                 break;
             }
@@ -250,6 +264,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         {
         case VK_LEFT:
         case VK_RIGHT:
+        case VK_UP:
+        case VK_DOWN:
             state = InputState::Neutral;
             break;
         default:
