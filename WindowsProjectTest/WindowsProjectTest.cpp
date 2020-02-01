@@ -143,6 +143,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
     static int dx = 1;
     static int dy = 1;
+    static const int diff = 32;
     static InputState state = InputState::Neutral;
     static HBITMAP hBitmap;
 
@@ -210,14 +211,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
             //d++;
             if (state == InputState::Left)
-                dx -= 5;
+                dx -= diff;
             else if (state == InputState::Right)
-                dx += 5;
+                dx += diff;
 
             if (state == InputState::Up)
-                dy -= 5;
+                dy -= diff;
             else if (state == InputState::Down)
-                dy += 5;
+                dy += diff;
 
             // 背景クリア
             auto hBackgroundBrush = static_cast<HBRUSH>(GetStockObject(DC_BRUSH));
