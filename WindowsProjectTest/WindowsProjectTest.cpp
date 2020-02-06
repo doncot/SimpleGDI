@@ -4,6 +4,8 @@
 #include "framework.h"
 #include "WindowsProjectTest.h"
 #include <d3d12.h>
+#include <vector>
+#include <string>
 
 #define D3DCOMPILE_DEBUG 1
 #define MAX_LOADSTRING 100
@@ -23,6 +25,12 @@ enum class InputState
     Right,
     Up,
     Down,
+};
+
+enum class CharState
+{
+    None,
+    State1
 };
 
 // このコード モジュールに含まれる関数の宣言を転送します:
@@ -147,6 +155,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
     static InputState state = InputState::Neutral;
     static HBITMAP hBitmap;
 
+    static std::vector<std::wstring> texts =
+    {
+        L"1",
+        L"2",
+        L"3",
+    };
+    static int textIndex = 0;
+
     switch (message)
     {
     case WM_CREATE:
@@ -224,11 +240,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             auto hBackgroundBrush = static_cast<HBRUSH>(GetStockObject(DC_BRUSH));
             FillRect(g_hMemoryDC, &clientRect, hBackgroundBrush);
 
-            TCHAR szText[] = _T("test!!");
-            TextOut(g_hMemoryDC, 0, 0, szText, lstrlen(szText));
             Rectangle(g_hMemoryDC, 50, 10, 200, 100);
             Rectangle(g_hMemoryDC, 250, 50, 400, 150);
+
+            // テキスト
+            Rectangle(g_hMemoryDC, 5, 445, 10 + 300, 445 + 80);
+            TextOut(g_hMemoryDC, 10, 450, texts[textIndex].c_str(), texts[textIndex].size());
             
+            // バックバッファに書き出し
             auto hBuffer = CreateCompatibleDC(g_hMemoryDC);
             SelectObject(hBuffer, hBitmap);
             BitBlt(g_hMemoryDC, 100 + dx, 100 + dy, 64, 64, hBuffer, 0, 0, SRCCOPY);
@@ -253,6 +272,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
                 break;
             case VK_DOWN:
                 state = InputState::Down;
+                break;
+            case 'Z':
+                if(textIndex + 1 < texts.size())
+                    textIndex++;
                 break;
             default:
                 break;
